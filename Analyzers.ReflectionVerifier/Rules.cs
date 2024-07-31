@@ -6,7 +6,7 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public class Rules
 {
-  private const string c_diagnosticId = "RMBCA0001";
+  private const string c_diagnosticId = "RMRVA0001";
   private const string c_category = "Usage";
   private static readonly LocalizableString s_title = "DummyTitle";
   private static readonly LocalizableString s_messageFormat = "DummyMessage";
