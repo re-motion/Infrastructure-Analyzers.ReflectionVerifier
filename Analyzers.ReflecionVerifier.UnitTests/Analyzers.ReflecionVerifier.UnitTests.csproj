@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Analyzers.ReflectionVerifier\Analyzers.ReflecionVerifier.csproj"/>
+        <ProjectReference Include="..\Analyzers.ReflectionVerifier\Analyzers.ReflectionVerifier.csproj"/>
         <ProjectReference Include="..\Analyzers.ReflectionVerifier\Analyzers.ReflectionVerifier.csproj" />
     </ItemGroup>
 
