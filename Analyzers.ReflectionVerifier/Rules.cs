@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public class Rules
+public static class Rules
 {
   private const string c_diagnosticId = "RMRVA0001";
   private const string c_category = "Usage";
