@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyzers.ReflectionVerifier", "Analyzers.ReflectionVerifier\Analyzers.ReflectionVerifier.csproj", "{1843C46E-102B-4363-BA18-9D8D88AB4612}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyzers.ReflecionVerifier.UnitTests", "Analyzers.ReflecionVerifier.UnitTests\Analyzers.ReflecionVerifier.UnitTests.csproj", "{C5EF5B87-764B-4873-8C8C-EA0C3B66E499}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1843C46E-102B-4363-BA18-9D8D88AB4612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1843C46E-102B-4363-BA18-9D8D88AB4612}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1843C46E-102B-4363-BA18-9D8D88AB4612}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1843C46E-102B-4363-BA18-9D8D88AB4612}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5EF5B87-764B-4873-8C8C-EA0C3B66E499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5EF5B87-764B-4873-8C8C-EA0C3B66E499}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5EF5B87-764B-4873-8C8C-EA0C3B66E499}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5EF5B87-764B-4873-8C8C-EA0C3B66E499}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
