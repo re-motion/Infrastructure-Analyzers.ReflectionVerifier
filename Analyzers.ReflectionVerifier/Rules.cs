@@ -8,9 +8,9 @@ public static class Rules
 {
   private const string c_diagnosticId = "RMRVA0001";
   private const string c_category = "Usage";
-  private static readonly LocalizableString s_title = "DummyTitle";
-  private static readonly LocalizableString s_messageFormat = "DummyMessage";
-  private static readonly LocalizableString s_description = "DummyDescription.";
+  private static readonly LocalizableString s_title = "Parameters wrong";
+  private static readonly LocalizableString s_messageFormat = "Parameters wrong";
+  private static readonly LocalizableString s_description = "Parameter count or types do not match the Parameters of the called method.";
 
   public static readonly DiagnosticDescriptor Rule = new(
       c_diagnosticId,

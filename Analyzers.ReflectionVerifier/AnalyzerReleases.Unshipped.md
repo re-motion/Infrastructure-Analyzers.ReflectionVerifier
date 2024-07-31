@@ -1,6 +1,5 @@
 ### New Rules
 
-| Rule ID | Category | Severity | Notes                                            |
-|---------|----------|----------|--------------------------------------------------|
-| BCA0001 | Naming   | Warning  | A classname should not be superstitious.         |
-| BCA0002 | Usage    | Warning  | The speed must be lower than the Speed of Light. |
+| Rule ID   | Category | Severity | Notes                                                     |
+|-----------|----------|----------|-----------------------------------------------------------|
+| RMRVA0001 | Usage    | Warning  | Parameters must match the signature of the called method. |
