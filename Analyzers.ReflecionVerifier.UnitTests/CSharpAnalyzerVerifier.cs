@@ -13,43 +13,43 @@ using Microsoft.CodeAnalysis.Testing;
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests;
 
 public static class CSharpAnalyzerVerifier<TAnalyzer>
-  where TAnalyzer : DiagnosticAnalyzer, new()
+    where TAnalyzer : DiagnosticAnalyzer, new()
 {
-  public static DiagnosticResult Diagnostic(DiagnosticDescriptor desc)
+  public static DiagnosticResult Diagnostic (DiagnosticDescriptor desc)
   {
     return CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(desc);
   }
 
-  public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+  public static Task VerifyAnalyzerAsync (string source, params DiagnosticResult[] expected)
   {
     //var contextAssemblyLocation = typeof(...).Assembly.Location;
 
     var test = new Test
-    {
-      TestCode = source,
-      //ReferenceAssemblies = GetReferenceAssemblies(typeof(...).Assembly),
-      SolutionTransforms =
-      {
-        (solution, id) =>
-        {
-          var project = solution.GetProject(id)!;
-          //project = project.AddMetadataReference(MetadataReference.CreateFromFile(contextAssemblyLocation));
-          return project.Solution;
-        }
-      }
-    };
+               {
+                   TestCode = source,
+                   //ReferenceAssemblies = GetReferenceAssemblies(typeof(...).Assembly),
+                   SolutionTransforms =
+                   {
+                       (solution, id) =>
+                       {
+                         var project = solution.GetProject(id)!;
+                         //project = project.AddMetadataReference(MetadataReference.CreateFromFile(contextAssemblyLocation));
+                         return project.Solution;
+                       }
+                   }
+               };
     test.ExpectedDiagnostics.AddRange(expected);
 
     return test.RunAsync();
   }
 
-  private static ReferenceAssemblies GetReferenceAssemblies(Assembly assembly)
+  private static ReferenceAssemblies GetReferenceAssemblies (Assembly assembly)
   {
     return assembly.GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName switch
     {
-      ".NETCoreApp,Version=v8.0" => ReferenceAssemblies.Net.Net80,
-      ".NETStandard,Version=v2.0" => ReferenceAssemblies.NetStandard.NetStandard20,
-      var frameworkName => throw new NotSupportedException($"'{frameworkName}' is not supported.")
+        ".NETCoreApp,Version=v8.0" => ReferenceAssemblies.Net.Net80,
+        ".NETStandard,Version=v2.0" => ReferenceAssemblies.NetStandard.NetStandard20,
+        var frameworkName => throw new NotSupportedException($"'{frameworkName}' is not supported.")
     };
   }
 

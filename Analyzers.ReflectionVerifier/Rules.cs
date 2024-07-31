@@ -11,6 +11,13 @@ public static class Rules
   private static readonly LocalizableString s_title = "DummyTitle";
   private static readonly LocalizableString s_messageFormat = "DummyMessage";
   private static readonly LocalizableString s_description = "DummyDescription.";
-  public static readonly DiagnosticDescriptor Rule = new(c_diagnosticId, s_title, s_messageFormat, c_category,
-      DiagnosticSeverity.Warning, true, s_description);
+
+  public static readonly DiagnosticDescriptor Rule = new(
+      c_diagnosticId,
+      s_title,
+      s_messageFormat,
+      c_category,
+      DiagnosticSeverity.Warning,
+      true,
+      s_description);
 }
