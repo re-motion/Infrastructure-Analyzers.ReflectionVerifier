@@ -10,20 +10,67 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests;
 public class ReflectionTest
 {
   [Fact]
-  public async Task Test ()
+  public async Task ReflectionCallCorrect ()
   {
     const string text =
         @"
-//reflection case
+using System;
+using System.Reflection;
+
+namespace ConsoleApp1;
+
+public class Test
+{
+  public void TestMethod (int a)
+  {
+  }
+
+  public Test (string a, int b)
+  {
+  }
+
+  public void Test2 ()
+  {
+    Activator.CreateInstance(typeof(Test), ""foo"", 42);
+    var x = new Test(""foo"", 42);
+  }
+}
       ";
     var expected = DiagnosticResult.EmptyDiagnosticResults;
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
-    //or
-    /*
-    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(ReflectionAnalyzer.Rule)
-          .WithLocation(14, 26)
-          .WithArguments("Test");
-      await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
-    */
+  }
+
+  [Fact]
+  public async Task ReflectionCallWrong ()
+  {
+    const string text =
+        @"
+using System;
+using System.Reflection;
+
+namespace ConsoleApp1;
+
+public class Test
+{
+  public Test (string a, int b)
+  {
+  }
+
+  public void TestMethod (int a)
+  {
+  }
+
+  public void Test2 ()
+  {
+    Activator.CreateInstance(typeof(Test), ""foo"", ""42"");
+    var x = new Test(""foo"", 42);
+  }
+}
+      ";
+
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(19, 5)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
 }

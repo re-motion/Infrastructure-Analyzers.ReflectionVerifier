@@ -17,7 +17,7 @@ public class ReflectionAnalyzer : DiagnosticAnalyzer
 
   public override void Initialize (AnalysisContext context)
   {
-    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.CompilationUnit);
+    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
 
     context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
@@ -26,5 +26,15 @@ public class ReflectionAnalyzer : DiagnosticAnalyzer
 
   private static void AnalyzeNode (SyntaxNodeAnalysisContext context)
   {
+    var analyzer = new AnalyzerInternal(context);
+
+    var diagnostic = analyzer.Analyze();
+
+    if (diagnostic is null)
+    {
+      return;
+    }
+
+    context.ReportDiagnostic(diagnostic);
   }
 }
