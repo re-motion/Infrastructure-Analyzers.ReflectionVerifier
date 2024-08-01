@@ -26,9 +26,19 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return null;
     }
 
-    var calledSignature = GetCalledSignature(InvokingMethods.CreateInstance);
+    MethodSignature calledSignature;
+    try
+    {
+      calledSignature = GetCalledSignature(InvokingMethods.CreateInstance);
+    }
+    // ReSharper disable once RedundantCatchClause
+    catch (NotSupportedException ex)
+    {
+      //return null;
+      throw;
+    }
 
-    var isValid = ConstructorDoesExist(calledSignature);
+    var isValid = DoesExist(calledSignature);
     Diagnostic? diagnostic = null;
     if (!isValid)
     {
@@ -38,18 +48,29 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
     return diagnostic;
   }
 
-  private bool ConstructorDoesExist (MethodSignature signature)
+  private bool DoesExist (MethodSignature signature)
   {
     var root = _node.SyntaxTree.GetRoot();
     foreach (var childNode in root.DescendantNodes())
     {
-      if (childNode is ConstructorDeclarationSyntax methodDeclarationSyntax)
+      if (childNode is BaseMethodDeclarationSyntax methodDeclarationSyntax)
       {
-        var methodName = methodDeclarationSyntax.Identifier.Text;
+        string methodName;
+        switch (methodDeclarationSyntax)
+        {
+          case MethodDeclarationSyntax method:
+            methodName = method.Identifier.Text;
+            break;
+          case ConstructorDeclarationSyntax constructor:
+            methodName = constructor.Identifier.Text;
+            break;
+          default:
+            continue; // Skip other types of method-like declarations
+        }
+
         var parameters = methodDeclarationSyntax.ParameterList.Parameters;
         var typesOfParameters = parameters.Select(
-            param =>
-                _semanticModel.GetDeclaredSymbol(param)?.Type).ToArray();
+            param => _semanticModel.GetDeclaredSymbol(param)?.Type).ToArray();
 
         var foundSignature = new MethodSignature(methodName, typesOfParameters);
 
@@ -86,6 +107,6 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return new MethodSignature(name, parameters);
     }
 
-    return new MethodSignature();
+    throw new NotSupportedException("");
   }
 }
