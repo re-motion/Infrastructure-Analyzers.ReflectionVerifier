@@ -4,5 +4,7 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public enum InvokingMethods
 {
-  CreateInstance
+  CreateInstance,
+  InvokePublicMethod,
+  InvokeNonPublicMethod
 }

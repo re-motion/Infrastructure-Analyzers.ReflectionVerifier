@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
+public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
 {
   private readonly InvocationExpressionSyntax _node = (InvocationExpressionSyntax)context.Node;
   private readonly SemanticModel _semanticModel = context.SemanticModel;
@@ -21,18 +21,16 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return null;
     }
 
-    if (memberAccessExpressionSyntax.Name.ToString() is not nameof(InvokingMethods.CreateInstance))
-    {
-      return null;
-    }
+    var methodName = memberAccessExpressionSyntax.Name.ToString();
+    var kindOfMethod = (InvokingMethods)Enum.Parse(typeof(InvokingMethods), methodName);
 
     MethodSignature calledSignature;
     try
     {
-      calledSignature = GetCalledSignature(InvokingMethods.CreateInstance);
+      calledSignature = GetCalledSignature(kindOfMethod);
     }
     // ReSharper disable once RedundantCatchClause
-    catch (NotSupportedException ex)
+    catch (NotSupportedException)
     {
       //return null;
       throw;
@@ -82,31 +80,5 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
     }
 
     return false;
-  }
-
-  private MethodSignature GetCalledSignature (InvokingMethods kind)
-  {
-    if (kind is InvokingMethods.CreateInstance)
-    {
-      var arguments = _node.ArgumentList.Arguments;
-      var name = (arguments[0].Expression as TypeOfExpressionSyntax)?.Type.ToString();
-      if (name is null)
-      {
-        throw new NotSupportedException("cannot look into variable with a roslyn analyzer");
-      }
-
-      var parameters = arguments.Select(
-          arg =>
-              _semanticModel.GetTypeInfo(arg.Expression).Type).Skip(1).ToArray();
-
-      if (parameters.Any(p => p is null))
-      {
-        throw new Exception();
-      }
-
-      return new MethodSignature(name, parameters);
-    }
-
-    throw new NotSupportedException("");
   }
 }
