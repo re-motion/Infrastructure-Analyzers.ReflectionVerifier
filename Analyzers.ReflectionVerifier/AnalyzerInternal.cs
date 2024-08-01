@@ -22,18 +22,19 @@ public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
     }
 
     var methodName = memberAccessExpressionSyntax.Name.ToString();
-    var kindOfMethod = (InvokingMethods)Enum.Parse(typeof(InvokingMethods), methodName);
+    if (!Enum.TryParse<InvokingMethods>(methodName, out var kindOfMethod))
+    {
+      return null;
+    }
 
     MethodSignature calledSignature;
     try
     {
       calledSignature = GetCalledSignature(kindOfMethod);
     }
-    // ReSharper disable once RedundantCatchClause
     catch (NotSupportedException)
     {
-      //return null;
-      throw;
+      return null;
     }
 
     var isValid = DoesExist(calledSignature);
