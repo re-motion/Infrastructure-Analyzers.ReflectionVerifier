@@ -16,7 +16,7 @@ public partial class AnalyzerInternal
     {
         InvokingMethods.CreateInstance => GetMethodSignatureCreateInstance(),
         InvokingMethods.InvokePublicMethod or InvokingMethods.InvokeNonPublicMethod => GetMethodSignatureInvokeMethod(),
-        _ => throw new NotSupportedException("")
+        _ => throw new NotSupportedException("not supporting this kind of method")
     };
   }
 
