@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
+public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
 {
   private readonly InvocationExpressionSyntax _node = (InvocationExpressionSyntax)context.Node;
   private readonly SemanticModel _semanticModel = context.SemanticModel;
@@ -21,18 +22,23 @@ public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return null;
     }
 
-    var methodName = memberAccessExpressionSyntax.Name.ToString();
-    if (!Enum.TryParse<InvokingMethods>(methodName, out var kindOfMethod))
+    if (_semanticModel.GetSymbolInfo(memberAccessExpressionSyntax).Symbol is not IMethodSymbol methodSymbol)
     {
       return null;
     }
 
+
     MethodSignature calledSignature;
     try
     {
-      calledSignature = GetCalledSignature(kindOfMethod);
+      var signatureFinder = new SignatureFinder(context);
+      calledSignature = signatureFinder.GetCalledSignature(methodSymbol);
     }
-    catch (NotSupportedException)
+    catch (VariableException ex)
+    {
+      return null;
+    }
+    catch (NotSupportedException ex)
     {
       return null;
     }
@@ -49,31 +55,24 @@ public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
 
   private bool DoesExist (MethodSignature signature)
   {
-    var root = _node.SyntaxTree.GetRoot();
-    foreach (var childNode in root.DescendantNodes())
+    var classSymbol = signature.ClassSymbol;
+    var childNodes = classSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ChildNodes()
+                     ?? throw new Exception("Could not get declaration of called method.");
+
+    foreach (var possibleMethod in childNodes)
     {
-      if (childNode is BaseMethodDeclarationSyntax methodDeclarationSyntax)
+      if (possibleMethod is BaseMethodDeclarationSyntax methodDeclarationSyntax)
       {
-        string methodName;
-        switch (methodDeclarationSyntax)
+        var methodSymbol = _semanticModel.GetDeclaredSymbol(methodDeclarationSyntax);
+
+        if (methodSymbol is null)
         {
-          case MethodDeclarationSyntax method:
-            methodName = method.Identifier.Text;
-            break;
-          case ConstructorDeclarationSyntax constructor:
-            methodName = constructor.Identifier.Text;
-            break;
-          default:
-            continue; // Skip other types of method-like declarations
+          throw new Exception("could not get semantic model of method declaration");
         }
 
-        var parameters = methodDeclarationSyntax.ParameterList.Parameters;
-        var typesOfParameters = parameters.Select(
-            param => _semanticModel.GetDeclaredSymbol(param)?.Type).ToArray();
+        var fullName = methodSymbol.ToDisplayString();
 
-        var foundSignature = new MethodSignature(methodName, typesOfParameters);
-
-        if (foundSignature.Equals(signature))
+        if (fullName.Equals(signature.ToString()))
         {
           return true;
         }

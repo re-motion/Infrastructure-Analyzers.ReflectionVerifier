@@ -1,68 +1,75 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public partial class AnalyzerInternal
+public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
 {
-  private MethodSignature GetCalledSignature (InvokingMethods kind)
+  private readonly InvocationExpressionSyntax _node = (InvocationExpressionSyntax)context.Node;
+  private readonly SemanticModel _semanticModel = context.SemanticModel;
+
+  public MethodSignature GetCalledSignature (IMethodSymbol methodSymbol)
   {
-    return kind switch
+    var methodName = GetMethodName(methodSymbol);
+
+    var kindOfMethod = GetMethodKindByName(methodName);
+
+    return kindOfMethod switch
     {
-        InvokingMethods.CreateInstance => GetMethodSignatureCreateInstance(),
-        InvokingMethods.InvokePublicMethod or InvokingMethods.InvokeNonPublicMethod => GetMethodSignatureInvokeMethod(),
+        InvokingMethod.CreateInstance => GetMethodSignatureCreateInstance(),
+        InvokingMethod.InvokeMethod => GetMethodSignatureInvokeMethod(),
+        InvokingMethod.CreateWithoutGeneric => GetMethodSignatureCreateWithoutGeneric(),
+        InvokingMethod.CreateWithGeneric => GetMethodSignatureCreateWithGeneric(methodSymbol),
         _ => throw new NotSupportedException("not supporting this kind of method")
     };
   }
 
-  private MethodSignature GetMethodSignatureInvokeMethod ()
+  private InvokingMethod GetMethodKindByName (string methodName)
   {
-    var arguments = _node.ArgumentList.Arguments.Skip(1).ToArray();
-    var isLiteralStringExpression = (arguments[0].Expression as LiteralExpressionSyntax).IsKind(SyntaxKind.StringLiteralExpression);
-    if (!isLiteralStringExpression)
+    InvokingMethod result;
+    switch (methodName)
     {
-      throw new NotSupportedException("cannot look into variable with a roslyn analyzer");
+      case "System.Activator.CreateInstance":
+        result = InvokingMethod.CreateInstance;
+        break;
+      case "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicMethod":
+      case "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicMethod":
+      case "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod":
+      case "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod":
+        result = InvokingMethod.InvokeMethod;
+        break;
+      case "Remotion.Mixins.ObjectFactory.Create":
+        result = InvokingMethod.CreateWithoutGeneric;
+        break;
+      case "Remotion.Mixins.ObjectFactory.Create<>":
+        result = InvokingMethod.CreateWithGeneric;
+        break;
+      default:
+        throw new NotSupportedException("This method is currently not supported.");
     }
 
-    var name = (arguments[0].Expression as LiteralExpressionSyntax)!.ToString();
-    name = name.Replace("\"", ""); // "Method" -> Method
-
-
-    var parameters = GetParameters(arguments.Skip(1).ToArray());
-
-    return new MethodSignature(name, parameters);
+    return result;
   }
 
-  private MethodSignature GetMethodSignatureCreateInstance ()
+  private static string GetMethodName (IMethodSymbol methodSymbol)
   {
-    var arguments = _node.ArgumentList.Arguments;
-    var name = (arguments[0].Expression as TypeOfExpressionSyntax)?.Type.ToString();
-    if (name is null)
+    var arr = methodSymbol.TypeArguments.ToArray();
+    List<string> stringArrayTypeParams = [];
+    stringArrayTypeParams.AddRange(arr.Select(typeParameterSymbol => typeParameterSymbol.ToString()));
+
+    var methodName = $"{methodSymbol.ContainingNamespace}.{methodSymbol.ContainingType.Name}.{methodSymbol.Name}";
+    if (stringArrayTypeParams.Count > 0)
     {
-      throw new NotSupportedException("cannot look into variable with a roslyn analyzer");
+      methodName += $"<>"; //{string.Join(", ", stringArrayTypeParams)}
     }
 
-    var parameters = GetParameters(arguments.Skip(1).ToArray());
-
-    return new MethodSignature(name, parameters);
-  }
-
-  private ITypeSymbol[] GetParameters (ArgumentSyntax[] arguments)
-  {
-    var parameters = arguments.Select(
-        arg =>
-            _semanticModel.GetTypeInfo(arg.Expression).Type).ToArray();
-
-    if (parameters.Any(p => p is null))
-    {
-      throw new Exception("parameter type is null for some reason");
-    }
-
-    return parameters!;
+    return methodName;
   }
 }

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests;
 
-public class ReflectionTest
+public class ReflectionTestCreateInstance
 {
   [Fact]
   public async Task ReflectionCallCorrect ()

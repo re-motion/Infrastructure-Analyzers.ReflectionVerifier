@@ -2,9 +2,14 @@
 // SPDX-License-Identifier: MIT
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public enum InvokingMethods
+public enum InvokingMethod
 {
   CreateInstance,
-  InvokePublicMethod,
-  InvokeNonPublicMethod
+  InvokeMethod,
+  CreateWithGeneric,
+  CreateWithoutGeneric,
+  NewObjectWithGeneric,
+  NewObjectWithOutGeneric,
+  MockGeneric,
+  MockSetup
 }
