@@ -83,6 +83,156 @@ public class ReflectionTestObjectFactoryCreate
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
 
+  [Fact]
+  public async Task Create_ImplicitEmptyParamList_ReflectionCallCorrect ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test ()
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create(typeof(Test));
+            }
+          }
+        }
+        
+        
+              
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_ImplicitEmptyParamList_ReflectionCallWrong ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create(typeof(Test));
+            }
+          }
+        }
+              
+        """;
+
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(21, 7)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_CreateParamList_ReflectionCallCorrect ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create(typeof(Test), ParamList.Create("foo"));
+            }
+          }
+        }
+        
+        
+              
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_CreateParamList_ReflectionCallWrong ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a, int b)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create(typeof(Test), ParamList.Create("foo"));
+            }
+          }
+        }
+              
+        """;
+
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(21, 7)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
   //-------------------------------------------------------
   //with genericArgument
   //-------------------------------------------------------
@@ -148,6 +298,152 @@ public class ReflectionTestObjectFactoryCreate
             public void Test2 ()
             {
               ObjectFactory.Create<Test>(ParamList.Empty);
+            }
+          }
+        }
+              
+        """;
+
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(21, 7)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_ImplicitEmptyParamList_WithGeneric_ReflectionCallCorrect ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test ()
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create<Test>();
+            }
+          }
+        }
+              
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_ImplicitEmptyParamList_WithGeneric_ReflectionCallWrong ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create<Test>();
+            }
+          }
+        }
+              
+        """;
+
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(21, 7)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_CreateParamList_WithGeneric_ReflectionCallCorrect ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create<Test>(ParamList.Create("foo"));
+            }
+          }
+        }
+              
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task Create_CreateParamList_WithGeneric_ReflectionCallWrong ()
+  {
+    const string text =
+        """
+
+        using System;
+
+        using Remotion.Mixins;
+        using Remotion.TypePipe;
+
+        namespace ConsoleApp1
+        {
+          public class Test
+          {
+            public Test (string a, int b)
+            {
+            }
+        
+            public void TestMethod (string a, int b)
+            {
+            }
+        
+            public void Test2 ()
+            {
+              ObjectFactory.Create<Test>(ParamList.Create("foo"));
             }
           }
         }
