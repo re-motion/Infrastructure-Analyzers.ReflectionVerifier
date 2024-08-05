@@ -19,6 +19,7 @@ public class ReflectionAnalyzer : DiagnosticAnalyzer
   public override void Initialize (AnalysisContext context)
   {
     context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
+    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ObjectCreationExpression);
 
     context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 

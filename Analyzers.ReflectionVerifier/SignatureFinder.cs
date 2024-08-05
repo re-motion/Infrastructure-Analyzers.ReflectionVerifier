@@ -11,7 +11,9 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
 {
-  private readonly InvocationExpressionSyntax _node = (InvocationExpressionSyntax)context.Node;
+  private readonly InvocationExpressionSyntax? _invocationExpressionNode = context.Node as InvocationExpressionSyntax;
+  private readonly ObjectCreationExpressionSyntax? _objectCreationExpressionNode = context.Node as ObjectCreationExpressionSyntax;
+  private readonly SyntaxNode _node = context.Node;
   private readonly SemanticModel _semanticModel = context.SemanticModel;
 
   public MethodSignature? GetCalledSignature (IMethodSymbol methodSymbol)
@@ -52,7 +54,7 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
             => InvokingMethod.LifetimeServiceNewObjectWithOutGeneric,
         "Remotion.Data.DomainObjects.DomainObject.NewObject<>"
             => InvokingMethod.DomainObjectNewObjectWithGeneric,
-        "Moq.Mock<>"
+        "Moq.Mock..ctor"
             => InvokingMethod.MockGeneric,
         "Moq.Protected.Setup"
             => InvokingMethod.MockSetup,

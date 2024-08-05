@@ -72,9 +72,19 @@ public partial class SignatureFinder
     return paramListArgs;
   }
 
-  private static string GetTypeParam (IMethodSymbol methodSymbol, out ITypeSymbol classSymbol)
+  private static string GetTypeParam (IMethodSymbol methodSymbol, out ITypeSymbol originalDefinition)
   {
-    var typeSymbols = methodSymbol.TypeArguments.ToArray();
+    var methodKind = methodSymbol.MethodKind;
+    ITypeSymbol[] typeSymbols;
+    if (methodKind is MethodKind.Constructor)
+    {
+      //Mock<Test> v = new Moq.Mock<Test>("foo", 3);
+      typeSymbols = methodSymbol.ContainingType.TypeArguments.ToArray();
+    }
+    else
+    {
+      typeSymbols = methodSymbol.TypeArguments.ToArray();
+    }
 
     if (typeSymbols.Length != 1)
     {
@@ -91,14 +101,14 @@ public partial class SignatureFinder
     var typeSymbol = typeSymbols[0];
     var stringArrayTypeParams = typeSymbol.ToString();
 
-    classSymbol = typeSymbol.OriginalDefinition;
+    originalDefinition = typeSymbol.OriginalDefinition;
     return $"{stringArrayTypeParams}";
   }
 
 
-  private static string GetFullNameGeneric (IMethodSymbol methodSymbol, out ITypeSymbol classSymbol)
+  private static string GetFullNameGeneric (IMethodSymbol methodSymbol, out ITypeSymbol originalDefinition)
   {
-    var name = $"{GetTypeParam(methodSymbol, out classSymbol)}";
+    var name = $"{GetTypeParam(methodSymbol, out originalDefinition)}";
     name += name.Substring(name.LastIndexOf(".", StringComparison.Ordinal));
     return name;
   }

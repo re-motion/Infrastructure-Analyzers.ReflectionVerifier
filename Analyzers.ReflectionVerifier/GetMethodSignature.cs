@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,9 +11,11 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public partial class SignatureFinder
 {
+  #region InvocationExpressionSyntax
+
   private MethodSignature GetMethodSignatureCreateInstance ()
   {
-    var arguments = _node.ArgumentList.Arguments.ToArray();
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
     var typeSymbol = GetTypeSymbol(arguments);
     var name = GetFullName(typeSymbol);
     var parameters = GetParameters(arguments.Skip(1).ToArray());
@@ -22,7 +25,7 @@ public partial class SignatureFinder
 
   private MethodSignature GetMethodSignatureInvokeMethod ()
   {
-    var arguments = _node.ArgumentList.Arguments.ToArray();
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
     var typeSymbol = GetTypeSymbol(arguments);
     var parameters = GetParameters(arguments.Skip(2).ToArray());
 
@@ -40,8 +43,8 @@ public partial class SignatureFinder
 
   private MethodSignature GetMethodSignatureCreateWithGeneric (IMethodSymbol methodSymbol)
   {
-    var name = GetFullNameGeneric(methodSymbol, out var classSymbol);
-    var arguments = _node.ArgumentList.Arguments.ToArray();
+    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition);
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
 
     if (arguments.Length > 1)
     {
@@ -51,12 +54,12 @@ public partial class SignatureFinder
     var paramListArgs = arguments.Length == 1 ? GetParamListArgs(arguments[0]) : [];
     var parameters = GetParameters(paramListArgs);
 
-    return new MethodSignature(name, classSymbol, parameters);
+    return new MethodSignature(name, originalDefinition, parameters);
   }
 
   private MethodSignature GetMethodSignatureCreateWithoutGeneric ()
   {
-    var arguments = _node.ArgumentList.Arguments.ToArray();
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
     var typeSymbol = GetTypeSymbol(arguments);
     var fullName = GetFullName(typeSymbol);
 
@@ -73,7 +76,7 @@ public partial class SignatureFinder
 
   private MethodSignature GetMethodSignatureLifetimeServiceNewObjectWithOutGeneric ()
   {
-    var arguments = _node.ArgumentList.Arguments.Skip(1).ToArray();
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.Skip(1).ToArray();
     var typeSymbol = GetTypeSymbol(arguments);
     var fullName = GetFullName(typeSymbol);
 
@@ -94,13 +97,32 @@ public partial class SignatureFinder
     return GetMethodSignatureCreateWithGeneric(methodSymbol);
   }
 
-  private MethodSignature GetMethodSignatureMockGeneric (IMethodSymbol methodSymbol)
-  {
-    throw new NotImplementedException(); // is not an InvocationExpressionSyntax but an ObjectCreationExpressionSyntax
-  }
-
   private MethodSignature GetMethodSignatureMockSetup ()
   {
-    throw new NotImplementedException(); // not possible because namespace is not given in the params
+    var x = _semanticModel.GetSymbolInfo(_invocationExpressionNode).Symbol as IMethodSymbol;
+    var y = x.ReturnType;
+    throw new NotSupportedException("not possible because namespace is not given in the params");
   }
+
+  #endregion
+
+
+  #region ObjectCreationSyntaxExpressions
+
+  private MethodSignature GetMethodSignatureMockGeneric (IMethodSymbol methodSymbol)
+  {
+    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition);
+    var arguments = _objectCreationExpressionNode!.ArgumentList?.Arguments.ToArray();
+
+    if (arguments is null)
+    {
+      throw new Exception("could not get arguments of ObjectCreationSyntax");
+    }
+
+    var parameters = GetParameters(arguments);
+
+    return new MethodSignature(name, originalDefinition, parameters);
+  }
+
+  #endregion
 }
