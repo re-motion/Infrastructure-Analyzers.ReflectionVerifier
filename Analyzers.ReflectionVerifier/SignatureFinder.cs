@@ -18,7 +18,8 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
 
   public MethodSignature? GetCalledSignature (IMethodSymbol methodSymbol)
   {
-    var methodName = GetMethodName(methodSymbol);
+    var methodName = methodSymbol.OriginalDefinition.ToDisplayString();
+
     var kindOfMethod = s_methodNameToKind.TryGetValue(methodName, out var kind) ? kind : InvokingMethod.NotAReflection;
 
     return kindOfMethod switch
@@ -34,25 +35,5 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
         InvokingMethod.MockSetup => GetMethodSignatureMockSetup(),
         _ => throw new NotSupportedException("Not supporting this kind of method")
     };
-  }
-
-  private static string GetMethodName (IMethodSymbol methodSymbol)
-  {
-    var arr = methodSymbol.TypeArguments.ToArray();
-    List<string> stringArrayTypeParams = [];
-    stringArrayTypeParams.AddRange(arr.Select(typeParameterSymbol => typeParameterSymbol.ToString()));
-
-    var methodName = $"{methodSymbol.ContainingNamespace}.{methodSymbol.ContainingType.Name}.{methodSymbol.Name}";
-    if (stringArrayTypeParams.Count > 0)
-    {
-      methodName += "<>";
-    }
-    else if (methodSymbol.MethodKind is MethodKind.Constructor)
-    {
-      methodName = $"{methodSymbol.ContainingNamespace}.{methodSymbol.ContainingType.Name}.{methodSymbol.ContainingType.Name}";
-    }
-
-
-    return methodName;
   }
 }

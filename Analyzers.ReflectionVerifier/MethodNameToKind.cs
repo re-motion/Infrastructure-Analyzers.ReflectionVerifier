@@ -10,47 +10,59 @@ public partial class SignatureFinder
       new()
       {
           {
-              "System.Activator.CreateInstance",
+              "System.Activator.CreateInstance(System.Type, params object?[]?)",
               InvokingMethod.CreateInstance
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicMethod",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicMethod(object, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicMethod",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicMethod(object, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod(object, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod(object, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Mixins.ObjectFactory.Create",
+              "Remotion.Mixins.ObjectFactory.Create(System.Type, Remotion.TypePipe.ParamList, params object[])",
               InvokingMethod.CreateWithoutGeneric
           },
           {
-              "Remotion.Mixins.ObjectFactory.Create<>",
+              "Remotion.Mixins.ObjectFactory.Create(System.Type)",
+              InvokingMethod.CreateWithoutGeneric
+          },
+          {
+              "Remotion.Mixins.ObjectFactory.Create<T>()",
               InvokingMethod.CreateWithGeneric
           },
           {
-              "Remotion.Data.DomainObjects.DomainImplementation.LifetimeService.NewObject",
+              "Remotion.Mixins.ObjectFactory.Create<T>(Remotion.TypePipe.ParamList, params object[])",
+              InvokingMethod.CreateWithGeneric
+          },
+          {
+              "Remotion.Data.DomainObjects.DomainImplementation.LifetimeService.NewObject(Remotion.Data.DomainObjects.ClientTransaction, System.Type, Remotion.TypePipe.ParamList)",
               InvokingMethod.LifetimeServiceNewObjectWithOutGeneric
           },
           {
-              "Remotion.Data.DomainObjects.DomainObject.NewObject<>",
+              "Remotion.Data.DomainObjects.DomainObject.NewObject<T>(Remotion.TypePipe.ParamList)",
               InvokingMethod.DomainObjectNewObjectWithGeneric
           },
           {
-              "Moq.Mock.Mock",
+              "Remotion.Data.DomainObjects.DomainObject.NewObject<T>()",
+              InvokingMethod.DomainObjectNewObjectWithGeneric
+          },
+          {
+              "Moq.Mock<T>.Mock(params object[])",
               InvokingMethod.MockGeneric
           },
           {
-              "Moq.Protected.Setup",
+              "Moq.Protected.Setup(string, params object[])",
               InvokingMethod.MockSetup
           }
       };
