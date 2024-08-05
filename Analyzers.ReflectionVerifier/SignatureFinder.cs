@@ -18,7 +18,8 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
 
   public MethodSignature? GetCalledSignature (IMethodSymbol methodSymbol)
   {
-    var kindOfMethod = GetMethodKindByName(GetMethodName(methodSymbol));
+    var methodName = GetMethodName(methodSymbol);
+    var kindOfMethod = s_methodNameToKind.TryGetValue(methodName, out var kind) ? kind : InvokingMethod.NotAReflection;
 
     return kindOfMethod switch
     {
@@ -31,38 +32,8 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
         InvokingMethod.DomainObjectNewObjectWithGeneric => GetMethodSignatureDomainObjectNewObjectWithGeneric(methodSymbol),
         InvokingMethod.MockGeneric => GetMethodSignatureMockGeneric(methodSymbol),
         InvokingMethod.MockSetup => GetMethodSignatureMockSetup(),
-        _ => throw new NotSupportedException("not supporting this kind of method")
+        _ => throw new NotSupportedException("Not supporting this kind of method")
     };
-  }
-
-  private InvokingMethod GetMethodKindByName (string methodName)
-  {
-    var result = methodName switch
-    {
-        "System.Activator.CreateInstance"
-            => InvokingMethod.CreateInstance,
-        "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicMethod"
-            or "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicMethod"
-            or "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod"
-            or "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod"
-            => InvokingMethod.InvokeMethod,
-        "Remotion.Mixins.ObjectFactory.Create"
-            => InvokingMethod.CreateWithoutGeneric,
-        "Remotion.Mixins.ObjectFactory.Create<>"
-            => InvokingMethod.CreateWithGeneric,
-        "Remotion.Data.DomainObjects.DomainImplementation.LifetimeService.NewObject"
-            => InvokingMethod.LifetimeServiceNewObjectWithOutGeneric,
-        "Remotion.Data.DomainObjects.DomainObject.NewObject<>"
-            => InvokingMethod.DomainObjectNewObjectWithGeneric,
-        "Moq.Mock..ctor"
-            => InvokingMethod.MockGeneric,
-        "Moq.Protected.Setup"
-            => InvokingMethod.MockSetup,
-
-        _ => InvokingMethod.NotAReflection
-    };
-
-    return result;
   }
 
   private static string GetMethodName (IMethodSymbol methodSymbol)
@@ -76,6 +47,11 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
     {
       methodName += "<>";
     }
+    else if (methodSymbol.MethodKind is MethodKind.Constructor)
+    {
+      methodName = $"{methodSymbol.ContainingNamespace}.{methodSymbol.ContainingType.Name}.{methodSymbol.ContainingType.Name}";
+    }
+
 
     return methodName;
   }
