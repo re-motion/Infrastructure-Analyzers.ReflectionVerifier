@@ -1,11 +1,12 @@
 ﻿// SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests;
+namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests.ReflectionTests;
 
 public class ReflectionTestCreateInstance
 {
