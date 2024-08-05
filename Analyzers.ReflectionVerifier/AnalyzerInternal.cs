@@ -28,7 +28,7 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
     }
 
 
-    MethodSignature calledSignature;
+    MethodSignature? calledSignature;
     try
     {
       var signatureFinder = new SignatureFinder(context);
@@ -43,7 +43,13 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return null;
     }
 
-    var isValid = DoesExist(calledSignature);
+    //not a reflection
+    if (calledSignature is null)
+    {
+      return null;
+    }
+
+    var isValid = DoesExist(calledSignature.GetValueOrDefault());
     Diagnostic? diagnostic = null;
     if (!isValid)
     {

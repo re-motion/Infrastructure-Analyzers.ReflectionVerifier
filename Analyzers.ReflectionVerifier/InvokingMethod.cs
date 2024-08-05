@@ -4,12 +4,13 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public enum InvokingMethod
 {
+  NotAReflection,
   CreateInstance,
   InvokeMethod,
   CreateWithGeneric,
   CreateWithoutGeneric,
-  NewObjectWithGeneric,
-  NewObjectWithOutGeneric,
+  LifetimeServiceNewObjectWithOutGeneric,
+  DomainObjectNewObjectWithGeneric,
   MockGeneric,
   MockSetup
 }

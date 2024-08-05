@@ -11,9 +11,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
+using Moq;
+using Remotion.Data.DomainObjects;
 using Remotion.Development.UnitTesting;
 using Remotion.Mixins;
 using Remotion.TypePipe;
+using Remotion.Data.DomainObjects.DomainImplementation;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier.UnitTests;
 
@@ -30,6 +33,9 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
     var contextAssemblyLocation = typeof(PrivateInvoke).Assembly.Location;
     var contextAssemblyLocation2 = typeof(ObjectFactory).Assembly.Location;
     var contextAssemblyLocation3 = typeof(ParamList).Assembly.Location;
+    var contextAssemblyLocation4 = typeof(LifetimeService).Assembly.Location;
+    var contextAssemblyLocation5 = typeof(DomainObject).Assembly.Location;
+    var contextAssemblyLocation6 = typeof(Mock).Assembly.Location;
 
     var test = new Test
                {
@@ -44,7 +50,10 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
                          [
                              MetadataReference.CreateFromFile(contextAssemblyLocation),
                              MetadataReference.CreateFromFile(contextAssemblyLocation2),
-                             MetadataReference.CreateFromFile(contextAssemblyLocation3)
+                             MetadataReference.CreateFromFile(contextAssemblyLocation3),
+                             MetadataReference.CreateFromFile(contextAssemblyLocation4),
+                             MetadataReference.CreateFromFile(contextAssemblyLocation5),
+                             MetadataReference.CreateFromFile(contextAssemblyLocation6)
                          ]);
                          return project.Solution;
                        }
