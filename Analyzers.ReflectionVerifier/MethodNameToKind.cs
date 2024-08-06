@@ -62,7 +62,7 @@ public partial class SignatureFinder
               InvokingMethod.MockGeneric
           },
           {
-              "Moq.Protected.Setup(string, params object[])",
+              "Moq.Protected.IProtectedMock<TMock>.Setup(string, params object[])",
               InvokingMethod.MockSetup
           }
       };
