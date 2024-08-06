@@ -143,7 +143,7 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
   {
     if (sourceType is null)
     {
-      return true; // there are other analyzers for that
+      return targetType.IsReferenceType;
     }
 
     var conversionIsValid = compilation.ClassifyConversion(sourceType, targetType).Exists;

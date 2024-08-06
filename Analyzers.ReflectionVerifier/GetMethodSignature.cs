@@ -16,7 +16,7 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureCreateInstance ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbol(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
     var name = GetFullName(typeSymbol);
     var parameters = GetParameters(arguments.Skip(1).ToArray());
 
@@ -26,7 +26,7 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureInvokeMethod ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbol(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
     var parameters = GetParameters(arguments.Skip(2).ToArray());
 
     if (!(arguments[1].Expression as LiteralExpressionSyntax).IsKind(SyntaxKind.StringLiteralExpression))
@@ -60,7 +60,7 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureCreateWithoutGeneric ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbol(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
     var fullName = GetFullName(typeSymbol);
 
     if (arguments.Length > 2)
@@ -77,7 +77,7 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureLifetimeServiceNewObjectWithOutGeneric ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.Skip(1).ToArray();
-    var typeSymbol = GetTypeSymbol(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
     var fullName = GetFullName(typeSymbol);
 
     if (arguments.Length > 2)
@@ -99,9 +99,29 @@ public partial class SignatureFinder
 
   private MethodSignature GetMethodSignatureMockSetup ()
   {
-    var x = _semanticModel.GetSymbolInfo(_invocationExpressionNode).Symbol as IMethodSymbol;
-    var y = x.ReturnType;
-    throw new NotSupportedException("not possible because namespace is not given in the params");
+    var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
+    var parameters = GetParameters(arguments.Skip(1).ToArray());
+
+    var methodSymbol = _semanticModel.GetSymbolInfo(_invocationExpressionNode!).Symbol as IMethodSymbol ?? throw new Exception("Could not get semantic model of ");
+    var returnType = methodSymbol.ReturnType;
+    var tMockArr = (returnType as INamedTypeSymbol)?.TypeArguments.ToArray();
+
+    if (tMockArr is null)
+    {
+      throw new VariableException("Could not get Return Type of Setup Method.");
+    }
+
+    if (tMockArr.Length != 1)
+    {
+      throw new Exception("Not a Setup method.");
+    }
+
+    var typeSymbol = tMockArr[0];
+
+    var fullName = typeSymbol.ToDisplayString() + "." + arguments[0].ToString()
+        .Replace("\"", ""); // "Method" -> Method
+
+    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters);
   }
 
   #endregion

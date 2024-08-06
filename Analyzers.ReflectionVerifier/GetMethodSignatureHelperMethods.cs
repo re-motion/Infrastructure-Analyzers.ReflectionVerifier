@@ -9,7 +9,7 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public partial class SignatureFinder
 {
-  private ITypeSymbol GetTypeSymbol (ArgumentSyntax[] arguments)
+  private ITypeSymbol GetTypeSymbolTypeOfExpression (ArgumentSyntax[] arguments)
   {
     var typeSyntax = (arguments[0].Expression as TypeOfExpressionSyntax)?.Type
                      ?? throw new VariableException("Variable instead of typeof([Class]).");
