@@ -90,9 +90,7 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
           throw new Exception("could not get semantic model of method declaration");
         }
 
-        var fullName = methodSymbol.ToDisplayString();
-
-        if (fullName.Equals(signature.ToString()))
+        if (IsValidFor(signature, methodSymbol))
         {
           return true;
         }
@@ -100,5 +98,56 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
     }
 
     return false;
+  }
+
+
+  private bool IsValidFor (MethodSignature signature, IMethodSymbol targetMethod)
+  {
+    var calledSignature = MethodSignature.ParseMethodSymbol(targetMethod);
+
+    if (!signature.NameInclusiveClass.Equals(calledSignature.NameInclusiveClass))
+    {
+      return false;
+    }
+
+    var argumentTypes = signature.Parameters;
+
+    if (argumentTypes.Length != targetMethod.Parameters.Length)
+    {
+      return false;
+    }
+
+    for (var i = 0; i < argumentTypes.Length; i++)
+    {
+      var argumentType = argumentTypes[i];
+      var parameterType = targetMethod.Parameters[i].Type;
+
+
+      if (parameterType.TypeKind == TypeKind.TypeParameter)
+      {
+        // For generic parameters, we'll consider any type as valid
+        // (cause compilation.ClassifyConversion doesn't think int can be converted to T for example)
+        continue;
+      }
+
+      if (!IsAssignableTo(argumentType, parameterType, SemanticModel.Compilation))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private bool IsAssignableTo (ITypeSymbol? sourceType, ITypeSymbol targetType, Compilation compilation)
+  {
+    if (sourceType is null)
+    {
+      return true; // there are other analyzers for that
+    }
+
+    var conversionIsValid = compilation.ClassifyConversion(sourceType, targetType).Exists;
+
+    return sourceType.Equals(targetType, SymbolEqualityComparer.Default) || conversionIsValid;
   }
 }

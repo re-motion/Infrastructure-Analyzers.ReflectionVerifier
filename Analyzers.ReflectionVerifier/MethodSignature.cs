@@ -12,6 +12,35 @@ public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol o
   public string NameInclusiveClass { get; } = nameInclusiveClass;
   public ITypeSymbol?[] Parameters { get; } = parameters;
 
+
+  public static MethodSignature ParseMethodSymbol (IMethodSymbol methodSymbol)
+  {
+    var name = GetClassName(methodSymbol);
+    var definition = GetTypeSymbol(methodSymbol);
+    var parametersLocal = GetParameters(methodSymbol);
+    return new MethodSignature(name, definition, parametersLocal);
+  }
+
+  private static ITypeSymbol?[] GetParameters (IMethodSymbol methodSymbol)
+  {
+    return methodSymbol.Parameters.Select(p => p.Type).ToArray();
+  }
+
+  private static ITypeSymbol GetTypeSymbol (IMethodSymbol methodSymbol)
+  {
+    return methodSymbol.ContainingType;
+  }
+
+  private static string GetClassName (IMethodSymbol methodSymbol)
+  {
+    if (methodSymbol.MethodKind is MethodKind.Constructor)
+    {
+      return $"{methodSymbol.ContainingType.ToDisplayString()}.{methodSymbol.ContainingType.Name}";
+    }
+
+    return $"{methodSymbol.ContainingType.ToDisplayString()}.{methodSymbol.Name}";
+  }
+
   public static bool operator == (MethodSignature left, MethodSignature right)
   {
     return left.Equals(right);
@@ -29,7 +58,9 @@ public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol o
 
   private bool Equals (MethodSignature other)
   {
-    return NameInclusiveClass == other.NameInclusiveClass && Parameters.SequenceEqual(other.Parameters) && OriginalDefinition.Equals(other.OriginalDefinition);
+    return NameInclusiveClass.Equals(other.NameInclusiveClass) &&
+           Parameters.SequenceEqual(other.Parameters, SymbolEqualityComparer.Default) &&
+           SymbolEqualityComparer.Default.Equals(OriginalDefinition, other.OriginalDefinition);
   }
 
   public override int GetHashCode ()
