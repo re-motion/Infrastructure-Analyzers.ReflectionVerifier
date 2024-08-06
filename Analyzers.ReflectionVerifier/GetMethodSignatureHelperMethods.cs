@@ -78,7 +78,6 @@ public partial class SignatureFinder
     ITypeSymbol[] typeSymbols;
     if (methodKind is MethodKind.Constructor)
     {
-      //Mock<Test> v = new Moq.Mock<Test>("foo", 3);
       typeSymbols = methodSymbol.ContainingType.TypeArguments.ToArray();
     }
     else
@@ -99,24 +98,37 @@ public partial class SignatureFinder
     }
 
     var typeSymbol = typeSymbols[0];
-    var stringArrayTypeParams = typeSymbol.ToString();
-
     originalDefinition = typeSymbol.OriginalDefinition;
-    return $"{stringArrayTypeParams}";
+    var typeParam = originalDefinition.ToString();
+
+    return $"{typeParam}";
   }
 
 
   private static string GetFullNameGeneric (IMethodSymbol methodSymbol, out ITypeSymbol originalDefinition)
   {
     var name = $"{GetTypeParam(methodSymbol, out originalDefinition)}";
-    name += name.Substring(name.LastIndexOf(".", StringComparison.Ordinal));
+    var lastIndexOfPoint = name.LastIndexOf(".", StringComparison.Ordinal);
+    if (lastIndexOfPoint == -1)
+    {
+      throw new Exception("Namespace of type does not have a . .");
+    }
+
+    var firstIndexOfLessThan = name.IndexOf("<", StringComparison.Ordinal);
+
+    if (firstIndexOfLessThan == -1)
+    {
+      firstIndexOfLessThan = name.Length;
+    }
+
+    name += name.Substring(lastIndexOfPoint, firstIndexOfLessThan - lastIndexOfPoint);
     return name;
   }
 
 
   private static string GetFullName (ITypeSymbol typeSymbol)
   {
-    var name = typeSymbol.ToDisplayString();
+    var name = typeSymbol.OriginalDefinition.ToDisplayString();
     var fullName = name + name.Substring(name.LastIndexOf(".", StringComparison.Ordinal));
     return fullName;
   }

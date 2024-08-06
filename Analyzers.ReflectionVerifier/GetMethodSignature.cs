@@ -34,7 +34,7 @@ public partial class SignatureFinder
       throw new VariableException("Variable instead of literal string");
     }
 
-    var name = typeSymbol.ToDisplayString();
+    var name = typeSymbol.OriginalDefinition.ToDisplayString();
     name += "." + (arguments[1].Expression as LiteralExpressionSyntax)!.ToString()
         .Replace("\"", ""); // "Method" -> Method
 
@@ -118,7 +118,7 @@ public partial class SignatureFinder
 
     var typeSymbol = tMockArr[0];
 
-    var fullName = typeSymbol.ToDisplayString() + "." + arguments[0].ToString()
+    var fullName = typeSymbol.OriginalDefinition.ToDisplayString() + "." + arguments[0].ToString()
         .Replace("\"", ""); // "Method" -> Method
 
     return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters);

@@ -103,9 +103,9 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
 
   private bool IsValidFor (MethodSignature signature, IMethodSymbol targetMethod)
   {
-    var calledSignature = MethodSignature.ParseMethodSymbol(targetMethod);
+    var targetSignature = MethodSignature.ParseMethodSymbol(targetMethod);
 
-    if (!signature.NameInclusiveClass.Equals(calledSignature.NameInclusiveClass))
+    if (!signature.NameInclusiveClass.Equals(targetSignature.NameInclusiveClass))
     {
       return false;
     }
@@ -125,8 +125,15 @@ public class AnalyzerInternal (SyntaxNodeAnalysisContext context)
 
       if (parameterType.TypeKind == TypeKind.TypeParameter)
       {
-        // For generic parameters, we'll consider any type as valid
-        // (cause compilation.ClassifyConversion doesn't think int can be converted to T for example)
+        var typeArguments = targetMethod.TypeArguments;
+
+        //uses own generics
+        if (typeArguments.Length > 0)
+        {
+          continue;
+        }
+
+
         continue;
       }
 
