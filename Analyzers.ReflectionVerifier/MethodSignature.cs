@@ -38,11 +38,11 @@ public class MethodSignature (string nameInclusiveClass, ITypeSymbol originalDef
 
   public override int GetHashCode ()
   {
-    return NameInclusiveClass.GetHashCode() ^ Parameters.GetHashCode() ^ OriginalDefinition.GetHashCode();
+    return NameInclusiveClass.GetHashCode() ^ Parameters.GetHashCode() ^ SymbolEqualityComparer.Default.GetHashCode(OriginalDefinition);
   }
 
   public override string ToString ()
   {
-    return $"{NameInclusiveClass}({string.Join(", ", Parameters.Select(param => param.ToString()))})";
+    return $"{NameInclusiveClass}({string.Join(", ", Parameters.Select(param => param!.ToString()))})";
   }
 }
