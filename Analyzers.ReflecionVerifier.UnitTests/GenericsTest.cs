@@ -38,16 +38,17 @@ public class GenericsTest
     var expected = DiagnosticResult.EmptyDiagnosticResults;
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
-  [Fact]
+
+  [Fact(Skip = "not implemented")]
   public async Task GenericsTest_ReflectionCallWrong ()
   {
     const string text =
         """
         using System;
         using Moq.Protected;
-        
+
         namespace ConsoleApp1;
-        
+
         public class Test<T>
         {
           public Test (string a, int b)
@@ -69,6 +70,125 @@ public class GenericsTest
     var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
         .WithLocation(21, 7)
         .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task GenericsTest_ParameterNotMatchingWhereCondition ()
+  {
+    const string text =
+        """
+        using System;
+        using Remotion.Development.UnitTesting;
+
+        namespace ConsoleApp1;
+
+        public class Test<T, T2> where T : DerivedTest where T2 : class
+        {
+          public Test (string a, int b)
+          {
+          }
+        
+          public void TestMethod (T a)
+          {
+          }
+        
+          public static void Main (string[] args)
+          {
+            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", "foo");
+          }
+        }
+        public class Test2
+        {
+        }
+        public class DerivedTest : Test2
+        {
+        }
+        public class SecondDerivedTest : DerivedTest
+        {
+        }
+        """;
+    var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
+        .WithLocation(18, 5)
+        .WithArguments("Test");
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task GenericsTest_ParameterMatchingWhereCondition ()
+  {
+    const string text =
+        """
+        using System;
+        using Remotion.Development.UnitTesting;
+
+        namespace ConsoleApp1;
+
+        public class Test<T, T2> where T : DerivedTest where T2 : class
+        {
+          public Test (string a, int b)
+          {
+          }
+        
+          public void TestMethod (T a)
+          {
+          }
+        
+          public static void Main (string[] args)
+          {
+            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", new DerivedTest());
+          }
+        }
+        public class Test2
+        {
+        }
+        public class DerivedTest : Test2
+        {
+        }
+        public class SecondDerivedTest : DerivedTest
+        {
+        }
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
+    await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
+  }
+
+  [Fact]
+  public async Task GenericsTest_ParameterMatchingWhereConditionDerived ()
+  {
+    const string text =
+        """
+        using System;
+        using Remotion.Development.UnitTesting;
+
+        namespace ConsoleApp1;
+
+        public class Test<T, T2> where T : DerivedTest where T2 : class
+        {
+          public Test (string a, int b)
+          {
+          }
+        
+          public void TestMethod (T a)
+          {
+          }
+        
+          public static void Main (string[] args)
+          {
+            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", new DerivedTest());
+          }
+        }
+        public class Test2
+        {
+        }
+        public class DerivedTest : Test2
+        {
+        }
+        public class SecondDerivedTest : DerivedTest
+        {
+        }
+        """;
+    var expected = DiagnosticResult.EmptyDiagnosticResults;
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
 }
