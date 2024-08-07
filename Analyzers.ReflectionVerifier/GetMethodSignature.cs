@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,17 +16,17 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureCreateInstance ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
     var name = GetFullName(typeSymbol);
     var parameters = GetParameters(arguments.Skip(1).ToArray());
 
-    return new MethodSignature(name, typeSymbol.OriginalDefinition, parameters);
+    return new MethodSignature(name, typeSymbol.OriginalDefinition, parameters, genericsMap);
   }
 
   private MethodSignature GetMethodSignatureInvokeMethod ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
     var parameters = GetParameters(arguments.Skip(2).ToArray());
 
     if (!(arguments[1].Expression as LiteralExpressionSyntax).IsKind(SyntaxKind.StringLiteralExpression))
@@ -38,12 +38,12 @@ public partial class SignatureFinder
     name += "." + (arguments[1].Expression as LiteralExpressionSyntax)!.ToString()
         .Replace("\"", ""); // "Method" -> Method
 
-    return new MethodSignature(name, typeSymbol.OriginalDefinition, parameters);
+    return new MethodSignature(name, typeSymbol.OriginalDefinition, parameters, genericsMap);
   }
 
   private MethodSignature GetMethodSignatureCreateWithGeneric (IMethodSymbol methodSymbol)
   {
-    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition);
+    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition, out var genericsMap);
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
 
     if (arguments.Length > 1)
@@ -54,13 +54,13 @@ public partial class SignatureFinder
     var paramListArgs = arguments.Length == 1 ? GetParamListArgs(arguments[0]) : [];
     var parameters = GetParameters(paramListArgs);
 
-    return new MethodSignature(name, originalDefinition, parameters);
+    return new MethodSignature(name, originalDefinition, parameters, genericsMap);
   }
 
   private MethodSignature GetMethodSignatureCreateWithoutGeneric ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
     var fullName = GetFullName(typeSymbol);
 
     if (arguments.Length > 2)
@@ -71,13 +71,13 @@ public partial class SignatureFinder
     var paramListArgs = arguments.Length == 2 ? GetParamListArgs(arguments[1]) : [];
     var parameters = GetParameters(paramListArgs);
 
-    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters);
+    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters, genericsMap);
   }
 
   private MethodSignature GetMethodSignatureLifetimeServiceNewObjectWithOutGeneric ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.Skip(1).ToArray();
-    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments);
+    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
     var fullName = GetFullName(typeSymbol);
 
     if (arguments.Length > 2)
@@ -88,7 +88,7 @@ public partial class SignatureFinder
     var paramListArgs = arguments.Length == 2 ? GetParamListArgs(arguments[1]) : [];
     var parameters = GetParameters(paramListArgs);
 
-    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters);
+    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters, genericsMap);
   }
 
   private MethodSignature GetMethodSignatureDomainObjectNewObjectWithGeneric (IMethodSymbol methodSymbol)
@@ -102,7 +102,8 @@ public partial class SignatureFinder
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
     var parameters = GetParameters(arguments.Skip(1).ToArray());
 
-    var methodSymbol = _semanticModel.GetSymbolInfo(_invocationExpressionNode!).Symbol as IMethodSymbol ?? throw new Exception("Could not get semantic model of ");
+    var methodSymbol = _semanticModel.GetSymbolInfo(_invocationExpressionNode!).Symbol as IMethodSymbol
+                       ?? throw new Exception("Could not get semantic model of invocation expression");
     var returnType = methodSymbol.ReturnType;
     var tMockArr = (returnType as INamedTypeSymbol)?.TypeArguments.ToArray();
 
@@ -121,7 +122,19 @@ public partial class SignatureFinder
     var fullName = typeSymbol.OriginalDefinition.ToDisplayString() + "." + arguments[0].ToString()
         .Replace("\"", ""); // "Method" -> Method
 
-    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters);
+    var genericsMap = new Dictionary<string, ITypeSymbol?>();
+
+    if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
+    {
+      var typeParameters = namedTypeSymbol.TypeParameters;
+      var typeArguments = namedTypeSymbol.TypeArguments;
+      for (var i = 0; i < typeParameters.Length; i++)
+      {
+        genericsMap[typeParameters[i].Name] = typeArguments[i];
+      }
+    }
+
+    return new MethodSignature(fullName, typeSymbol.OriginalDefinition, parameters, genericsMap);
   }
 
   #endregion
@@ -131,7 +144,7 @@ public partial class SignatureFinder
 
   private MethodSignature GetMethodSignatureMockGeneric (IMethodSymbol methodSymbol)
   {
-    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition);
+    var name = GetFullNameGeneric(methodSymbol, out var originalDefinition, out var genericsMap);
     var arguments = _objectCreationExpressionNode!.ArgumentList?.Arguments.ToArray();
 
     if (arguments is null)
@@ -141,7 +154,7 @@ public partial class SignatureFinder
 
     var parameters = GetParameters(arguments);
 
-    return new MethodSignature(name, originalDefinition, parameters);
+    return new MethodSignature(name, originalDefinition, parameters, genericsMap);
   }
 
   #endregion

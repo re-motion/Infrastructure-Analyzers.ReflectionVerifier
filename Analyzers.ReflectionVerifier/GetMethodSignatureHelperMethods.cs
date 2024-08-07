@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,13 +10,26 @@ namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
 public partial class SignatureFinder
 {
-  private ITypeSymbol GetTypeSymbolTypeOfExpression (ArgumentSyntax[] arguments)
+  private ITypeSymbol GetTypeSymbolTypeOfExpression (ArgumentSyntax argument, out Dictionary<string, ITypeSymbol?> genericsMap)
   {
-    var typeSyntax = (arguments[0].Expression as TypeOfExpressionSyntax)?.Type
+    var typeSyntax = (argument.Expression as TypeOfExpressionSyntax)?.Type
                      ?? throw new VariableException("Variable instead of typeof([Class]).");
 
     var typeSymbol = _semanticModel.GetSymbolInfo(typeSyntax).Symbol as ITypeSymbol
                      ?? throw new VariableException("Cannot resolve type symbol.");
+
+    genericsMap = new Dictionary<string, ITypeSymbol?>();
+
+    if (_semanticModel.GetTypeInfo(typeSyntax).Type is INamedTypeSymbol namedTypeSymbol)
+    {
+      var typeParameters = namedTypeSymbol.TypeParameters;
+      var typeArguments = namedTypeSymbol.TypeArguments;
+      for (var i = 0; i < typeParameters.Length; i++)
+      {
+        genericsMap[typeParameters[i].Name] = typeArguments[i];
+      }
+    }
+
     return typeSymbol;
   }
 
@@ -105,7 +119,7 @@ public partial class SignatureFinder
   }
 
 
-  private static string GetFullNameGeneric (IMethodSymbol methodSymbol, out ITypeSymbol originalDefinition)
+  private static string GetFullNameGeneric (IMethodSymbol methodSymbol, out ITypeSymbol originalDefinition, out Dictionary<string, ITypeSymbol?> genericMap)
   {
     var name = $"{GetTypeParam(methodSymbol, out originalDefinition)}";
     var lastIndexOfPoint = name.LastIndexOf(".", StringComparison.Ordinal);
@@ -115,13 +129,25 @@ public partial class SignatureFinder
     }
 
     var firstIndexOfLessThan = name.IndexOf("<", StringComparison.Ordinal);
-
     if (firstIndexOfLessThan == -1)
     {
       firstIndexOfLessThan = name.Length;
     }
 
     name += name.Substring(lastIndexOfPoint, firstIndexOfLessThan - lastIndexOfPoint);
+
+
+    genericMap = new Dictionary<string, ITypeSymbol?>();
+    if (originalDefinition is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
+    {
+      var typeParameters = namedTypeSymbol.TypeParameters;
+      var typeArguments = namedTypeSymbol.TypeArguments;
+      for (var i = 0; i < typeParameters.Length; i++)
+      {
+        genericMap[typeParameters[i].Name] = typeArguments[i];
+      }
+    }
+
     return name;
   }
 

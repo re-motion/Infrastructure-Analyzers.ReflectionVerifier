@@ -1,31 +1,18 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public class MethodSignature (string nameInclusiveClass, ITypeSymbol originalDefinition, ITypeSymbol?[] parameters)
+public class MethodSignature (string nameInclusiveClass, ITypeSymbol originalDefinition, ITypeSymbol?[] parameters, Dictionary<string, ITypeSymbol?> genericsMap)
 {
   public ITypeSymbol OriginalDefinition { get; } = originalDefinition;
   public string NameInclusiveClass { get; } = nameInclusiveClass;
   public ITypeSymbol?[] Parameters { get; } = parameters;
-
-
-  public static MethodSignature ParseMethodSymbol (IMethodSymbol methodSymbol)
-  {
-    var name = methodSymbol.MethodKind is MethodKind.Constructor
-        ? $"{methodSymbol.ContainingType.ToDisplayString()}.{methodSymbol.ContainingType.Name}"
-        : $"{methodSymbol.ContainingType.ToDisplayString()}.{methodSymbol.Name}";
-
-    var definition = methodSymbol.ContainingType;
-
-    var parametersLocal = methodSymbol.Parameters.Select(p => p.Type).ToArray();
-
-
-    return new MethodSignature(name, definition, parametersLocal);
-  }
+  public Dictionary<string, ITypeSymbol?> GenericsMap { get; } = genericsMap;
 
   public static bool operator == (MethodSignature left, MethodSignature right)
   {

@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: (c) RUBICON IT GmbH, www.rubicon.eu
 // SPDX-License-Identifier: MIT
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -39,12 +38,13 @@ public partial class AnalyzerInternal
     return false;
   }
 
-
   private bool IsValidFor (MethodSignature signature, IMethodSymbol targetMethod)
   {
-    var targetSignature = MethodSignature.ParseMethodSymbol(targetMethod);
+    var name = targetMethod.MethodKind is MethodKind.Constructor
+        ? $"{targetMethod.ContainingType.ToDisplayString()}.{targetMethod.ContainingType.Name}"
+        : $"{targetMethod.ContainingType.ToDisplayString()}.{targetMethod.Name}";
 
-    if (!signature.NameInclusiveClass.Equals(targetSignature.NameInclusiveClass))
+    if (!signature.NameInclusiveClass.Equals(name))
     {
       return false;
     }
@@ -57,7 +57,7 @@ public partial class AnalyzerInternal
     }
 
     //describes the TypeParameterConstraintClauses (the conditions, the generics have to meet)
-    var genericsMap = GetGenericsMap(targetMethod);
+    var genericsMap = signature.GenericsMap;
 
     for (var i = 0; i < argumentTypes.Length; i++)
     {
@@ -84,43 +84,6 @@ public partial class AnalyzerInternal
     }
 
     return true;
-  }
-
-  private Dictionary<string, ITypeSymbol?> GetGenericsMap (IMethodSymbol targetMethod)
-  {
-    var originalDefinition = targetMethod.OriginalDefinition.ContainingType.OriginalDefinition;
-    var genericsMap =
-        originalDefinition.TypeParameters.ToDictionary<ITypeParameterSymbol?, string, ITypeSymbol?>(parameter => parameter.ToString(), _ => null);
-
-    var classDeclarationSyntax = originalDefinition.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-
-    if (classDeclarationSyntax is null)
-    {
-      throw new Exception("Could not get Syntax Node of target method");
-    }
-
-    foreach (var childNode in classDeclarationSyntax.ChildNodes().OfType<TypeParameterConstraintClauseSyntax>())
-    {
-      if (childNode is null)
-      {
-        continue;
-      }
-
-      var currentGeneric = childNode.Name.Identifier.Text;
-
-      var expressionSyntax = childNode.Constraints
-          .OfType<TypeConstraintSyntax>()
-          .FirstOrDefault()?.Type;
-
-      // if it is a type in the expression
-      if (expressionSyntax is not null)
-      {
-        var typeCondition = SemanticModel.GetTypeInfo(expressionSyntax).Type!;
-        genericsMap[currentGeneric] = typeCondition;
-      }
-    }
-
-    return genericsMap;
   }
 
   private bool IsAssignableTo (ITypeSymbol? sourceType, ITypeSymbol? targetType)
