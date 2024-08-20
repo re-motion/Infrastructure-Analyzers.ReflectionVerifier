@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: MIT
 using System;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Exception = System.Exception;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
@@ -13,21 +15,23 @@ public partial class AnalyzerInternal
 {
   private bool DoesExist (MethodSignature signature)
   {
-    var classSymbol = signature.OriginalDefinition;
-    var childNodes = classSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().ChildNodes()
-                     ?? throw new Exception("Could not get declaration of called method.");
+    var classSymbol = signature.OriginalClassDefinition;
 
-    foreach (var possibleMethod in childNodes)
+    var metadataName = GetFullMetadataName(classSymbol);
+
+    var compilation = context.SemanticModel.Compilation;
+    compilation = compilation.WithOptions(compilation.Options.WithMetadataImportOptions(MetadataImportOptions.All));
+    //TODO: get all members not just public and protected (line above does not work)
+
+    var namedTypeSymbol = compilation.GetTypeByMetadataName(metadataName)
+                          ?? throw new Exception("Could not get INamedType of originalDefinition");
+
+    var members = namedTypeSymbol.GetMembers();
+
+    foreach (var possibleMethod in members)
     {
-      if (possibleMethod is BaseMethodDeclarationSyntax methodDeclarationSyntax)
+      if (possibleMethod is IMethodSymbol methodSymbol)
       {
-        var methodSymbol = SemanticModel.GetDeclaredSymbol(methodDeclarationSyntax);
-
-        if (methodSymbol is null)
-        {
-          throw new Exception("could not get semantic model of method declaration");
-        }
-
         if (IsValidFor(signature, methodSymbol))
         {
           return true;
@@ -37,6 +41,44 @@ public partial class AnalyzerInternal
 
     return false;
   }
+
+  public static string GetFullMetadataName (ISymbol s)
+  {
+    if (IsRootNamespace(s))
+    {
+      return string.Empty;
+    }
+
+    var sb = new StringBuilder(s.MetadataName);
+    var last = s;
+
+    s = s.ContainingSymbol;
+
+    while (!IsRootNamespace(s))
+    {
+      if (s is ITypeSymbol && last is ITypeSymbol)
+      {
+        sb.Insert(0, '+');
+      }
+      else
+      {
+        sb.Insert(0, '.');
+      }
+
+      sb.Insert(0, s.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+      //sb.Insert(0, s.MetadataName);
+      s = s.ContainingSymbol;
+    }
+
+    return sb.ToString();
+
+    bool IsRootNamespace (ISymbol symbol)
+    {
+      INamespaceSymbol? namespaceSymbol;
+      return ((namespaceSymbol = symbol as INamespaceSymbol) != null) && namespaceSymbol.IsGlobalNamespace;
+    }
+  }
+
 
   private bool IsValidFor (MethodSignature signature, IMethodSymbol targetMethod)
   {

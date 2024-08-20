@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol originalDefinition, ITypeSymbol?[] parameters, Dictionary<string, ITypeSymbol?> genericsMap)
+public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol originalClassDefinition, ITypeSymbol?[] parameters, Dictionary<string, ITypeSymbol?> genericsMap)
 {
-  public ITypeSymbol OriginalDefinition { get; } = originalDefinition;
+  public ITypeSymbol OriginalClassDefinition { get; } = originalClassDefinition;
   public string NameInclusiveClass { get; } = nameInclusiveClass;
   public ITypeSymbol?[] Parameters { get; } = parameters;
   public Dictionary<string, ITypeSymbol?> GenericsMap { get; } = genericsMap;
@@ -33,12 +33,12 @@ public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol o
   {
     return NameInclusiveClass.Equals(other.NameInclusiveClass) &&
            Parameters.SequenceEqual(other.Parameters, SymbolEqualityComparer.Default) &&
-           SymbolEqualityComparer.Default.Equals(OriginalDefinition, other.OriginalDefinition);
+           SymbolEqualityComparer.Default.Equals(OriginalClassDefinition, other.OriginalClassDefinition);
   }
 
   public override int GetHashCode ()
   {
-    return NameInclusiveClass.GetHashCode() ^ Parameters.GetHashCode() ^ SymbolEqualityComparer.Default.GetHashCode(OriginalDefinition);
+    return NameInclusiveClass.GetHashCode() ^ Parameters.GetHashCode() ^ SymbolEqualityComparer.Default.GetHashCode(OriginalClassDefinition);
   }
 
   public override string ToString ()

@@ -12,7 +12,6 @@ public partial class SignatureFinder
 {
   private ITypeSymbol GetTypeSymbolTypeOfExpression (ArgumentSyntax argument, out Dictionary<string, ITypeSymbol?> genericsMap)
   {
-    
     var typeSyntax = (argument.Expression as TypeOfExpressionSyntax)?.Type
                      ?? throw new VariableException("Variable instead of typeof([Class]).");
 
@@ -33,9 +32,9 @@ public partial class SignatureFinder
 
     return typeSymbol;
   }
-  
-  private ITypeSymbol GetTypeSymbolFromVariable(
-      ArgumentSyntax argument, 
+
+  private ITypeSymbol GetTypeSymbolFromVariable (
+      ArgumentSyntax argument,
       out Dictionary<string, ITypeSymbol?> genericsMap)
   {
     // Ensure we have an expression
@@ -46,7 +45,7 @@ public partial class SignatureFinder
 
     // Get the type information from the semantic model
     var typeInfo = _semanticModel.GetTypeInfo(argument.Expression);
-    var typeSymbol = typeInfo.Type 
+    var typeSymbol = typeInfo.Type
                      ?? throw new VariableException("Cannot resolve type symbol from the variable.");
 
     genericsMap = new Dictionary<string, ITypeSymbol?>();
@@ -64,8 +63,8 @@ public partial class SignatureFinder
 
     return typeSymbol;
   }
-  
-  
+
+
   private bool IsStatic ()
   {
     var expression = _invocationExpressionNode!.Expression;
