@@ -34,7 +34,8 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokePublicMethod(typeof(Test), "TestMethod", 42);
+            var test = new Test("asdf", 3);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", 42);
           }
         }
               
@@ -67,14 +68,15 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokePublicMethod(typeof(Test), "TestMethod", 42, "foo");
+            var test = new Test("asdf", 3);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", 42, "foo");
           }
         }
               
         """;
 
     var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
-        .WithLocation(20, 5)
+        .WithLocation(21, 5)
         .WithArguments("Test");
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
@@ -104,7 +106,8 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokeNonPublicMethod(typeof(Test), "TestMethod", 42);
+            var test = new Test("asdf", 3);
+            PrivateInvoke.InvokeNonPublicMethod(test, "TestMethod", 42);
           }
         }
               
@@ -137,14 +140,15 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokeNonPublicMethod(typeof(Test), "TestMethod", 42, 3);
+            var test = new Test("asdf", 3);
+            PrivateInvoke.InvokeNonPublicMethod(test, "TestMethod", 42, 3);
           }
         }
               
         """;
 
     var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
-        .WithLocation(20, 5)
+        .WithLocation(21, 5)
         .WithArguments("Test");
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
@@ -177,7 +181,7 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokePublicMethod(typeof(Test), "TestMethod", 42);
+            PrivateInvoke.InvokePublicStaticMethod(typeof(Test), "TestMethod", 42);
           }
         }
               
@@ -210,7 +214,7 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokePublicMethod(typeof(Test), "TestMethod", 42, "foo");
+            PrivateInvoke.InvokePublicStaticMethod(typeof(Test), "TestMethod", 42, "foo");
           }
         }
               
@@ -247,7 +251,7 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokeNonPublicMethod(typeof(Test), "TestMethod", 42);
+            PrivateInvoke.InvokeNonPublicStaticMethod(typeof(Test), "TestMethod", 42);
           }
         }
               
@@ -280,7 +284,7 @@ public class ReflectionTestPrivateInvokeInvokeMethod
           public void Test3 ()
           {
             
-            PrivateInvoke.InvokeNonPublicMethod(typeof(Test), "TestMethod", 42, 3);
+            PrivateInvoke.InvokeNonPublicStaticMethod(typeof(Test), "TestMethod", 42, 3);
           }
         }
               

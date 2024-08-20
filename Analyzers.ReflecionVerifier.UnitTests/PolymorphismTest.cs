@@ -31,8 +31,8 @@ public class PolymorphismTest
         
           public void Test3 ()
           {
-            
-            PrivateInvoke.InvokePublicMethod(typeof(Test), "TestMethod", 42);
+            var test = new Test("", 4);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", 42);
           }
         }
               

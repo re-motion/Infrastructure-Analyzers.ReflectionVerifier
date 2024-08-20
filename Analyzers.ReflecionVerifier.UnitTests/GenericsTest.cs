@@ -95,7 +95,8 @@ public class GenericsTest
         
           public static void Main (string[] args)
           {
-            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", "foo");
+          var test = new Test<T, T2>("asdf", 4);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", "foo");
           }
         }
         public class Test2
@@ -109,7 +110,7 @@ public class GenericsTest
         }
         """;
     var expected = CSharpAnalyzerVerifier<ReflectionAnalyzer>.Diagnostic(Rules.Rule)
-        .WithLocation(18, 5)
+        .WithLocation(19, 5)
         .WithArguments("Test");
     await CSharpAnalyzerVerifier<ReflectionAnalyzer>.VerifyAnalyzerAsync(text, expected);
   }
@@ -136,7 +137,8 @@ public class GenericsTest
         
           public static void Main (string[] args)
           {
-            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", new DerivedTest());
+            var test = new Test<T, T2>("asdf", 4);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", new DerivedTest());
           }
         }
         public class Test2
@@ -175,7 +177,8 @@ public class GenericsTest
         
           public static void Main (string[] args)
           {
-            PrivateInvoke.InvokePublicMethod(typeof(Test<T, T2>), "TestMethod", new DerivedTest());
+            var test = new Test<T, T2>("asdf", 4);
+            PrivateInvoke.InvokePublicMethod(test, "TestMethod", new DerivedTest());
           }
         }
         public class Test2

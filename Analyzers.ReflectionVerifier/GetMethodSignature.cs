@@ -26,7 +26,9 @@ public partial class SignatureFinder
   private MethodSignature GetMethodSignatureInvokeMethod ()
   {
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
-    var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
+
+    var typeSymbol = IsStatic() ? GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap) : GetTypeSymbolFromVariable(arguments[0], out genericsMap);
+
     var parameters = GetParameters(arguments.Skip(2).ToArray());
 
     if (!(arguments[1].Expression as LiteralExpressionSyntax).IsKind(SyntaxKind.StringLiteralExpression))

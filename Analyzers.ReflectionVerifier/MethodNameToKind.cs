@@ -22,11 +22,11 @@ public partial class SignatureFinder
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod(object, string, params object?[]?)",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicStaticMethod(System.Type, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {
-              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod(object, string, params object?[]?)",
+              "Remotion.Development.UnitTesting.PrivateInvoke.InvokeNonPublicStaticMethod(System.Type, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },
           {

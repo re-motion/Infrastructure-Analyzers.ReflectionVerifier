@@ -12,6 +12,7 @@ public partial class SignatureFinder
 {
   private ITypeSymbol GetTypeSymbolTypeOfExpression (ArgumentSyntax argument, out Dictionary<string, ITypeSymbol?> genericsMap)
   {
+    
     var typeSyntax = (argument.Expression as TypeOfExpressionSyntax)?.Type
                      ?? throw new VariableException("Variable instead of typeof([Class]).");
 
@@ -32,6 +33,62 @@ public partial class SignatureFinder
 
     return typeSymbol;
   }
+  
+  private ITypeSymbol GetTypeSymbolFromVariable(
+      ArgumentSyntax argument, 
+      out Dictionary<string, ITypeSymbol?> genericsMap)
+  {
+    // Ensure we have an expression
+    if (argument.Expression == null)
+    {
+      throw new VariableException("Argument expression is null.");
+    }
+
+    // Get the type information from the semantic model
+    var typeInfo = _semanticModel.GetTypeInfo(argument.Expression);
+    var typeSymbol = typeInfo.Type 
+                     ?? throw new VariableException("Cannot resolve type symbol from the variable.");
+
+    genericsMap = new Dictionary<string, ITypeSymbol?>();
+
+    // If the type is a named type (possibly generic)
+    if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+    {
+      var typeParameters = namedTypeSymbol.TypeParameters;
+      var typeArguments = namedTypeSymbol.TypeArguments;
+      for (var i = 0; i < typeParameters.Length; i++)
+      {
+        genericsMap[typeParameters[i].Name] = typeArguments[i];
+      }
+    }
+
+    return typeSymbol;
+  }
+  
+  
+  private bool IsStatic ()
+  {
+    var expression = _invocationExpressionNode!.Expression;
+
+    // Check if it's a member access expression (e.g., ClassName.MethodName)
+    if (expression is MemberAccessExpressionSyntax memberAccessExpression)
+    {
+      // Extract the method name and check if it contains "Static"
+      var methodName = memberAccessExpression.Name.Identifier.Text;
+      return methodName.Contains("Static");
+    }
+    // Check if it's a simple identifier (e.g., MethodName)
+    else if (expression is IdentifierNameSyntax identifierName)
+    {
+      // Extract the method name and check if it contains "Static"
+      var methodName = identifierName.Identifier.Text;
+      return methodName.Contains("Static");
+    }
+
+    // Return false if neither case applies
+    return false;
+  }
+
 
   private ITypeSymbol[] GetParameters (ArgumentSyntax[] arguments)
   {
