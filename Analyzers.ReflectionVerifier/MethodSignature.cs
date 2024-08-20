@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Remotion.Infrastructure.Analyzers.ReflectionVerifier;
 
-public class MethodSignature (string nameInclusiveClass, ITypeSymbol originalDefinition, ITypeSymbol?[] parameters, Dictionary<string, ITypeSymbol?> genericsMap)
+public readonly struct MethodSignature (string nameInclusiveClass, ITypeSymbol originalDefinition, ITypeSymbol?[] parameters, Dictionary<string, ITypeSymbol?> genericsMap)
 {
   public ITypeSymbol OriginalDefinition { get; } = originalDefinition;
   public string NameInclusiveClass { get; } = nameInclusiveClass;
