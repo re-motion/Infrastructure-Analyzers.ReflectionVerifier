@@ -41,7 +41,7 @@ public partial class AnalyzerInternal (SyntaxNodeAnalysisContext context)
       return null;
     }
 
-    var isValid = DoesExist(calledSignature);
+    var isValid = DoesExist(calledSignature.GetValueOrDefault());
 
     if (!isValid)
     {
