@@ -23,7 +23,7 @@ public partial class SignatureFinder (SyntaxNodeAnalysisContext context)
     return kindOfMethod switch
     {
         InvokingMethod.NotAReflection => null,
-        InvokingMethod.CreateInstance => GetMethodSignatureCreateInstance(),
+        InvokingMethod.CreateInstance => GetMethodSignatureCreateInstance(methodSymbol),
         InvokingMethod.InvokeMethod => GetMethodSignatureInvokeMethod(),
         InvokingMethod.CreateWithoutGeneric => GetMethodSignatureCreateWithoutGeneric(),
         InvokingMethod.CreateWithGeneric => GetMethodSignatureCreateWithGeneric(methodSymbol),

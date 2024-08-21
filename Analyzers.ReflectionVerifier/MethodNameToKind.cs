@@ -14,6 +14,10 @@ public partial class SignatureFinder
               InvokingMethod.CreateInstance
           },
           {
+              "System.Activator.CreateInstance<T>()",
+              InvokingMethod.CreateInstance
+          },
+          {
               "Remotion.Development.UnitTesting.PrivateInvoke.InvokePublicMethod(object, string, params object?[]?)",
               InvokingMethod.InvokeMethod
           },

@@ -13,8 +13,14 @@ public partial class SignatureFinder
 {
   #region InvocationExpressionSyntax
 
-  private MethodSignature GetMethodSignatureCreateInstance ()
+  private MethodSignature GetMethodSignatureCreateInstance (IMethodSymbol methodSymbol)
   {
+    if ((_invocationExpressionNode?.Expression as MemberAccessExpressionSyntax)?.Name.Arity is not 0)
+    {
+      // in the case of Activator.CreateInstance<Test>(); (same parameters as ObjectFactory.Create<>)
+      return GetMethodSignatureCreateWithGeneric(methodSymbol);
+    }
+
     var arguments = _invocationExpressionNode!.ArgumentList.Arguments.ToArray();
     var typeSymbol = GetTypeSymbolTypeOfExpression(arguments[0], out var genericsMap);
     var name = GetFullName(typeSymbol);
@@ -50,7 +56,7 @@ public partial class SignatureFinder
 
     if (arguments.Length > 1)
     {
-      throw new ArgumentException("ObjectFactory.Create<> or DomainObject.NewObject<> called with more than one argument.");
+      throw new ArgumentException("ObjectFactory.Create<> or DomainObject.NewObject<> or Activator.CreateInstance<> called with more than one argument.");
     }
 
     var paramListArgs = arguments.Length == 1 ? GetParamListArgs(arguments[0]) : [];
